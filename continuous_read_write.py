@@ -14,8 +14,14 @@ def sig_handler(sig, frame):
 # register keyboard interrupt
 signal.signal(signal.SIGINT, sig_handler)
 
+# EDIT FILE/TEST PROPERTIES HERE.....
+# ===================================================
 # path of file i want to create
 file_path = r"D:\test.txt"
+
+# number of bytes i want the test to be
+target_bytes = 100_000
+# ===================================================
 
 # create the file
 def create_file(file_path):
@@ -23,7 +29,10 @@ def create_file(file_path):
     with open(file_path, 'w') as f:
         f.write("")
 
-def read_write_loop(file_path, iterations = 1000, timeout = .15, target_bytes = 100_000, max_duration = 60):
+def read_write_loop(file_path, target_bytes, iterations = 1000, timeout = .15, max_duration = 60):
+    # iterations is how many tests it will run before looping over...
+    # max_duration is a ceiling to how long the test can run if it hasn't reached target bytes
+    
     error_count = 0
     total_tests = 0
     total_written = 0
@@ -36,11 +45,8 @@ def read_write_loop(file_path, iterations = 1000, timeout = .15, target_bytes = 
                 # check if keyboard interrupt
                 if not running:
                     break
-                
-                # check to see if it passed the duration
-                #if (time.time() - start_time) > max_duration:
-                #    break
 
+                # check if it reached target bytes
                 if total_written > target_bytes:
                     break
                 
@@ -49,15 +55,16 @@ def read_write_loop(file_path, iterations = 1000, timeout = .15, target_bytes = 
                 write = f"test {i} at {current_time}\n"
                 start_write_time = time.time()
 
-                #write to file
-                f.seek(0,2) #move to end of file
-                f.write(write) #write the line
-                f.flush() #ensure its written to disk
+                # write to file
+                f.seek(0,2) # move to end of file
+                f.write(write) # write the line
+                f.flush() # ensure its written to disk
 
-                #check amount of time needed to write
+                # check amount of time needed to write
                 write_time = time.time() - start_write_time
                 total_written += len(write)
 
+                # if it takes too long to write
                 if(write_time > timeout):
                     error_count += 1
                     error_rate = error_count/(total_tests+1) * 100 if total_tests > 0 else 100
@@ -65,14 +72,15 @@ def read_write_loop(file_path, iterations = 1000, timeout = .15, target_bytes = 
                     print(f"    Error count = {error_count}, Error rate = {error_rate:.2f}% of {total_tests+1} total tests")
                     continue
 
-                print(write.strip()) #print for visibility
+                print(write.strip()) # print for visibility
 
-                #read from file
+                # read from file
                 start_read_time = time.time()
                 f.seek(f.tell() - (len(write) + 1)) # move to start of line just finished
                 read = f.readline()
                 read_time = time.time() - start_read_time
 
+                # if it takes too long to read
                 if read_time > timeout:
                     error_count += 1
                     error_rate = error_count/(total_tests+1) * 100 if total_tests > 0 else 100
@@ -82,7 +90,7 @@ def read_write_loop(file_path, iterations = 1000, timeout = .15, target_bytes = 
 
                 total_tests += 1
 
-                #verify
+                # verify R/W
                 if read != write:
                     print(f"    FAIL at line {i}. Wrote '{write.strip()}', read '{read.strip()}'.")
                     error_count += 1
@@ -97,7 +105,6 @@ def read_write_loop(file_path, iterations = 1000, timeout = .15, target_bytes = 
                 
                 time.sleep(0.001)
 
-            #time.sleep(0.10)
     
     # consider how long the test was
     end_time = time.time()
@@ -115,6 +122,6 @@ def read_write_loop(file_path, iterations = 1000, timeout = .15, target_bytes = 
 
 try:
     create_file(file_path)
-    read_write_loop(file_path)
+    read_write_loop(file_path, target_bytes)
 except Exception as e:
     print(f"An error has occured: {e}")
