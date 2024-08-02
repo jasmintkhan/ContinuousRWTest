@@ -13,6 +13,8 @@ This repository contains a Python script to perform continuous read and write op
    ```sh
    git clone https://github.com/jasmintkhan/ContinuousRWTest.git
 2. Navigate to the repository directory:
+   ```sh
    cd ContinuousRWTest
-3. Run the script:
-   py continuous_rw_test.py
+4. Run the script:
+   ```sh
+   py continuous_read_write.py
